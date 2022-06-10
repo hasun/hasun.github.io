@@ -1,0 +1,122 @@
+---
+layout: post
+title: "Vertx Tcp EventBus Bridge 정리"
+subtitle: "정리 기억용"
+date: 2022-06-09 14:26:00 -0400
+background: '/img/posts/06.jpg'
+---
+
+<p><a href="https://vertx.io/docs/vertx-tcp-eventbus-bridge/java/">Vert.X-tcp-eventbus-bridge</a></p>
+
+<ul>
+    <li>TCP EventBus Bridge는 TCP 위에 구성된 어플리케이션</li>
+    <li>TCP 소켓 생성 할 수 있는 모든 애플리케이션은 EventBus를 통해 원격 Vert.x 인스턴스와 상호작용</li>
+    <li>프로토콜은 JVM이 아닌 애플리케이션과의 통합 인터페이스를 효율적으로 제공</li>
+    <li>프로토콜 통신은 양방향으로 프레임을 사용</li>
+    <li>프레임 구조</li>
+    <li>  Length: uInt32 { type: String, address: String, (replyAddress: String)?, headers: JsonObject, body: JsonObject }: JsonObject</li>
+    <li>TCP 클라이언트에서 보내는 메시지 유형</li>
+    <li>  send, publish, register, unregister, ping </li>
+    <li>서버에서 보내는 메시지 유형</li>
+    <li>  message , err, pong </li>
+</ul>
+
+<p>Vert.X-tcp-eventbus-bridge 파이썬 클라이언트 샘플</p>
+<ul>
+    <li>Vertx Tcp Eventbus Bridge는 Python Client 소켓 모듈에서 Vert.x Tcp Bridge 호출을 통하여 안정적인 통신방식을 사용하고자 한다.</li>
+    <li><a href="https://github.com/vert-x3/vertx-eventbus-bridge-clients/tree/master/python">https://github.com/vert-x3/vertx-eventbus-bridge-clients/tree/master/python</a></li>
+</ul>
+
+<p>Python Client Example</p>
+<ul>
+    <li>from vertx import EventBus
+        ebus = EventBus('localhost', 7000)
+
+        def handler(msg):
+        print("Got message from server: %s" % msg)
+
+        ebus.connect()
+
+        ebus.register_handler("test", handler)
+
+        ebus.send("echo", reply_address="test", body={'desc': 'send to echo, reply to test’})
+
+        ebus.close()
+    </li>
+</ul>
+
+<p>활용 분야</p>
+<ul>
+    <li>Python 모듈에서 Java Vertx Server Tcp 통신 ( Discovery 모듈 사용 )</li>
+</ul>
+<p>구성요소</p>
+<ul>
+    <li> Python Client Tcp Socket  (Socket 통신)</li>
+    <li> <a href="https://vertx.io/docs/vertx-tcp-eventbus-bridge/java/">Vertx 통신 라이브러리</a></li>
+    <li> TcpEventBusBridge Server Example </li>
+
+    <li> TcpEventBusBridge bridge = TcpEventBusBridge.create( vertx, new BridgeOptions()
+        .addInboundPermitted(new PermittedOptions().setAddress("in"))
+        .addOutboundPermitted(new PermittedOptions().setAddress("out")));
+
+        bridge.listen(7000, res -> { if (res.succeeded()) { // succeed... } else { // fail... } });
+    </li>
+    <li> io.vertx.ext.eventbus.bridge.tcp apidocs </li>
+    <li> Interface Hierarchy
+        - io.vertx.core.Handler <E>
+            io.vertx.core.Promise <T>
+            io.vertx.ext.bridge.BaseBridgeEvent
+            -   io.vertx.ext.eventbus.bridge.tcp.BridgeEvent
+            -  io.vertx.ext.eventbus.bridge.tcp.TcpEventBusBridge
+    </li>
+    <li><a href="https://github.com/vert-x3/vertx-bridge-common"> EventBusBridges </a></li>
+    <li>EventBusBridge는 vert.x 이벤트 버스와 다른 프로토콜 간의 (일반적으로 양방향) 매핑을 관리하는 모듈입니다.</li>
+    <li>Event Bus <---- BRIDGE ----> Stomp / AMQP / TCP / SOCKJS ... </li>
+    <li>Bridge Options : 인바운드 및 아웃바운드 허용 옵션 목록을 유지 관리</li>
+    <li>Permitted Options : 브리지에서 허용하는 주소를 표현</li>
+</ul>
+
+
+<p><a href="https://pypi.org/project/vertx-eventbus/1.0.0/">vertx-eventbus python 사이트</a></p>
+<p><a href="https://github.com/jaymine/TCP-eventbus-client-Python">TcpEventBusBridgePythonClientSample 참고 소스 사이트</a></p>
+<ul>
+    <li> class Client():
+        #Handler
+        def Handler(self,message):
+        if message != None:
+        print(message[‘body’][‘result’],’4’);
+
+        eb=Eventbus.Eventbus(Client(),’localhost’, 7000)
+        #jsonObject -body body={‘msg’:’add 4 to 0’,}
+        #DeliveryOption do=DeliveryOption.DeliveryOption(); do.addHeader(‘type’,’text’)
+        do.addHeader(‘size’,’small’) do.addReplyAddress(‘add’) do.setTimeInterval(5)
+        #register handler eb.registerHandler(‘add’,do,Client.Handler);
+        #send eb.send(‘add’,body,do)
+        #close after 5 seconds eb.closeConnection(5)
+    </li>
+
+    <li> public void before(TestContext context)
+        {
+            vertx = Vertx.vertx();
+            final Async async = context.async();
+            vertx.eventBus().consumer("hello", (Message<JsonObject> msg)
+                -> msg.reply(new JsonObject().put("value", "Hello " + msg.body().getString("value"))));
+
+                vertx.eventBus().consumer("echo", (Message<JsonObject> msg) -> msg.reply(msg.body()));
+                    vertx.setPeriodic(1000, __ -> vertx.eventBus().send("ping", new JsonObject().put("value", "hi")));
+
+                    TcpEventBusBridge bridge = TcpEventBusBridge.create(
+                    vertx, new BridgeOptions()
+                    .addInboundPermitted(new PermittedOptions().setAddress("hello"))
+                    .addInboundPermitted(new PermittedOptions().setAddress("echo"))
+                    .addInboundPermitted(new PermittedOptions().setAddress("test"))
+                    .addOutboundPermitted(new PermittedOptions().setAddress("echo"))
+                    .addOutboundPermitted(new PermittedOptions().setAddress("test"))
+                    .addOutboundPermitted(new PermittedOptions().setAddress("ping"))
+                    , new NetServerOptions(), event -> eventHandler.handle(event));
+
+                    bridge.listen(7000, res -> {
+                    context.assertTrue(res.succeeded()); async.complete(); });
+        }
+    </li>
+</ul>
