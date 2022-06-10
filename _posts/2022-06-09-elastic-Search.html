@@ -6,17 +6,151 @@ date: 2022-06-09 14:26:00 -0400
 background: '/img/posts/06.jpg'
 ---
 
-<p>소개 - Lucene의 역 색인 구조를 사용한 오픈소스 검색엔진 클라이언트</p>
+<p>Lucene의 역 색인 구조를 사용한 오픈소스 검색엔진 클라이언트</p>
 
 <p>관계형 데이터베이스와의 개념 비교 (왼쪽이 엘라스틱서치에서 사용되는 용어이고 오른쪽은 그에 매칭되는 관계형 디비에서 사용되는 용어입니다.)</p>
-<p>- 인덱스(Index) | 데이터베이스(Database)   </p>
-<p>- 인덱스(Index) | 데이터베이스(Database)   </p>
-<p>- 인덱스(Index) | 데이터베이스(Database)   </p>
-<p>- 인덱스(Index) | 데이터베이스(Database)   </p>
+<ul>
+    <li>인덱스(Index) | 데이터베이스(Database)</li>
+    <li>샤드(Shard) | 파티션(Partition)</li>
+    <li>타입(Type) | 테이블(Table)</li>
+    <li>문서(Document) | 행(Row)</li>
+    <li>필드(Field) | 열(Column)</li>
+    <li>매핑(Mapping) | 스키마(Schema)</li>
+    <li>Query DSL | SQL</li>
 
-<h2 class="section-heading"></h2>
-<blockquote class="blockquote"></blockquote>
+    <p>Restful API</p>
+    <ul>
+        <li>GET (데이터 조회) | Select</li>
+        <li>PUT (데이터 생성) | Insert</li>
+        <li>POST (인덱스 업데이트, 데이터 조회) | UPDATE, SELECT</li>
+        <li>DELETE (데이터 삭제) | DELETE</li>
+        <li>HEAD (인덱스의 정보 확인)  | -</li>
+    </ul>
+</ul>
 
-<img class="img-fluid" src="https://source.unsplash.com/Mn9Fa_wQH-M/800x450" alt="Demo Image">
-<span class="caption text-muted"></span>
-<p>Placeholder text by <a href="http://spaceipsum.com/">Space Ipsum</a>. Photographs by <a href="https://unsplash.com/">Unsplash</a>.</p>
+<p>강점</p>
+<ul>
+    <li>오픈소스 검색엔진 : 프로젝트 활성화</li>
+    <li>전문검색 : Full Text 검색 (내용 전체를 색인해서 특정 단어가 포함된 문서를 검색)</li>
+    <li>통계분석 : 통계분석 키바나 제공</li>
+    <li>Restful API : HTTP 기반의 RESTful API 지원</li>
+    <li>확장성과 가용성 : 샤드 및 레플리카를 통한 분산환경 구성</li>
+</ul>
+
+<p>단점</p>
+<ul>
+    <li>준 실시간 색인 검색 ( 커밋 과 플러시 동작 )</li>
+    <li>트랜잭션과 롤백 기능 없음</li>
+    <li>데이터 업데이트 제공 안함 (삭제 후 생성)</li>
+</ul>
+
+<p>분산 구조 구성요소</p>
+<ul>
+    <li>클러스터 : 물리적인 노드 인스턴스들의 모임으로 모든 노드의 검색과 색인작업을 관리하는 논리적인 개념</li>
+    <li>마스터 노드 : 클러스터를 관리 하고 노드 추가와 제거 같은 클러스터 전반적인 관리</li>
+    <li>데이터 노드 : 실질적인 데이터 저장 검색과 통계 같은 데이터 관련 작업 수행</li>
+    <li>코디네이팅 노드 : 사용자의 요청만 받아서 처리하고 클러스터 관련 요청은 마스터 노드에 전달하고 데이터 관련요청은 데이터 노드에 전달</li>
+    <li>인제스트 노드 : 문서의 전처리 작업을 담당하고 인덱스 생성 전 문서의 형식을 다양하게 변경할 수 있다.</li>
+    <li>설정에 따라 각 노드는 한 가지 유형으로 동작할 수 있고 여러 개의 유형을 겸해서 동작 가능함</li>
+</ul>
+
+<p>ElasticSearch 기본 텍스트 분석</p>
+<ul>
+    <li>Text 타입의 기본 분석기 Standard Analyzer</li>
+    <li>예) 아버지가 방에 들어 가신다 -> 아버지가, 방에, 들어, 가신다 토큰 분리</li>
+    <li>대체방안 : 내장 NORI TOKENIZER + BIGRAM 쿼리 활용</li>
+    <li>"fields" : ["nori^2.0" , "ngram"]</li>
+    <li>내장 NORI TOKENIZER 는 Elastic Search 에서 제공하는 형태소 분석기</li>
+    <li>Bigram은 두개의 단어로 연속하여 분리하는 방식</li>
+    <li>색인은 Nori Tokenizer로 분석하는 Text 필드와 Bigram 으로 분석하는 필드를 구성하여 색인을 진행하고 검색 쿼리를 할 때 Nori Tokenizer 에 가중치를 부여하여 멀티 필드 쿼리 실행</li>
+</ul>
+
+<p>Nori Tokenizer + Bigram 인덱스 설정</p>
+<img class="img-fluid" src="/img/contents/tokenizer_bigram.png" alt="Image">
+<span class="caption text-muted">대체방안 : 내장 NORI TOKENIZER + BIGRAM</span>
+
+<p>ElasticSearch 주요 API</p>
+<ul>
+    <li>인덱스 관리 API : 인덱스 관리</li>
+    <li>문서 관리 API : 문서의 추가/수정/삭제</li>
+    <li>검색 API : 문서조회</li>
+    <li>집계 API : 문서통계</li>
+
+    <p>인덱스 관리 API</p>
+    <ul>
+        <li>인덱스 생성 : PUT /movie</li>
+        <li>인덱스 삭제 : DELETE /movie</li>
+    </ul>
+    <p>문서 관리 API</p>
+    <ul>
+        <li>Index API : 한 건의 문서를 색인 한다. : PUT /movie/_doc/1, POST /movie/_doc</li>
+        <li>Get API : 한 건의 문서를 조회한다. : GET /movie/_doc/1</li>
+        <li>Delete API : 한 건의 문서를 삭제한다. : DELETE /movie/_doc/1</li>
+        <li>Update API : 한 건의 문서를 업데이트 한다.</li>
+        <li>Multi Get API : 다수의 문서를 조회 한다.</li>
+        <li>Bulk API : 대량의 문서를 색인 한다.</li>
+        <li> - POST _bulk {index : “_index” :””, “_type” :”” ,”_id” : “” } } {“field” : “” }</li>
+        <li>Delete By Query API : 다수의 문서를 삭제한다.</li>
+        <li> - POST /movie/_delete_by_query { “query” : { term : {“movieCd” : “test” } }}</li>
+        <li>Update By Query API : 다수의 문서를 업데이트 한다.</li>
+        <li>POST /movie/_doc/1/update { “script” : {“source” :  “ctx._source.counter += params.count”,  “params” : { “count” : 1} , “lang” : “painless” }</li>
+        <li>Reindex API : 인덱스의 문서를 다시 색인 한다. POST /_reindex {“source”:{},”dest”:{}}</li>
+    </ul>
+    <p>검색 API (Query DSL)</p>
+    <ul>
+        <li> GET /movie/_doc/_search {</li>
+        <li>    “_source” : [“검색 리턴 필드”, “”], 특정 필드만 결과로 반환 할 때 사용</li>
+        <li>    “sort” : { “field” : { “order” : “asc”} }, 특정 필드를 기준으로 정렬</li>
+        <li>    “query” : { “term” : { “Field” : “keyword”}} 검색될 조건을 정의</li>
+        <li>    “size” : 몇 개의 결과를 반환할지 결정 (기본 값은 10)</li>
+        <li>    “from” : 어느 위치부터 반환할지를 결정한다, 0부터 시작하면 상위 0~10 건의 데이터 반환 (기본 값은 0)</li>
+        <li>    “filter” : {  검색 결과 중 특정한 값을 다시 보여준다, 결과 내에서 재 검색 할 때 사용하는 기능 중 하나다. 필터를 사용하게 되면 자동으로 score 값이 정렬되지 않는다.}</li>
+        <li>  } </li>
+    </ul>
+
+    <p>집계 API (Query DSL)</p>
+    <ul>
+        <li> 과거에는 루씬이 제공하는 패싯(Facets) 기능을 활용했지만 분산환경에 최적화되지 않았기 때문에 독자적인 집계 (Aggregation) API를 제공 (5.0 이후)</li>
+        <li> 집계 API는 기본적으로 메모리 기반으로 동작</li>
+        <li>  POST /movie/_search?size=0 (장르 필드 집계 쿼리) </li>
+        <li>   { “aggs” : {  “AggfieldNm” : {“terms” : {“field” : “genreAlt” } }  } }</li>
+        <li>  POST /movie/_search?size=0 (장르 별 국가 형태 중첩 집계 쿼리) </li>
+        <li>     { “aggs” : {  “AggfieldNm” : {“terms” : {“field” : “genreAlt” },
+                        “aggs” : {  “AggfieldNm2” : {“terms” : {“field” : “national” }
+                 } } }
+        </li>
+    </ul>
+</ul>
+
+<p>필드 데이터 타입</p>
+<ul>
+    <li>Keyword 데이터 타입</li>
+    <ul><li>  검색 시 필터링 되는 항목, 정렬이 필요한 항목, 집계해야 하는 항목</li></ul>
+    <li>Text 데이터 타입</li>
+    <ul><li>  전문 검색 사용, 텍스트 토큰화 (분석기 사용), Text/Keyword 멀티 필드 설정 가능</li></ul>
+    <li>Array 데이터 타입</li>
+    <ul><li>  매핑 설정 시 Array 타입 정의 안함, [{“name” : “Marry”, “age” :12}, {“name” : “John”, “age” :12} ]</li></ul>
+
+    <li>Numeric 데이터 타입</li>
+    <li>  long , integer, short, byte, float, double</li>
+    <li>Date 데이터 타입</li>
+    <li>  기본 형식 “yyyy-MM-ddTHH:mm:ssZ”</li>
+    <li>  format : “yyyy-MM-dd HH:mm:ss” 설정 가능</li>
+    <li>Range 데이터 타입</li>
+    <li>  범위가 있는 데이터를 저장할때 사용하는 데이터 타입 (10 ~ 20)</li>
+    <li>  long_range , integer_range, float_range, double_range, date_range, ip_range</li>
+    <li>Boolean 데이터 타입</li>
+    <li>  - true , false</li>
+    <li>Object 데이터 타입</li>
+    <li>  - properties : { “companies” : { “properties” : { “companyName” : { “type” :”text”}}  }}</li>
+    <li>Nested 데이터 타입</li>
+    <li>  - properties : { “companies_nested” : { “type” :”nested”} }</li>
+</ul>
+
+
+<h2 class="section-heading">Java Rest Client</h2>
+<p>Java Low Level REST Client : Http 를 통해 ElasticSearch 클러스터와 통신할 수 있고 버전에 영향을 받지 않음</p>
+<p><a href="https://www.elastic.co/guide/en/elasticsearch/client/java-rest/current/java-rest-high.html">Java High Level REST Client</a> : High Level Client는 Low Level Client를 한 번 추상화 해서 사용</p>
+
+<p><a href="https://github.com/javacafe-project/elastic-book">샘플 참고 소스 사이트 (한글)</a></p>
+<p>엘라스틱 서치 7.0 이상에서 Transport 클라이언트 모듈 (Netty 모듈을 통해 네이티브 클라이언트를 통해 접근) 미지원 및 8.0 에서 삭제예정.</p>
