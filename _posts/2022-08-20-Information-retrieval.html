@@ -1,0 +1,58 @@
+---
+layout: post
+title: "정보검색 정리"
+subtitle: "정리 기억용"
+date: 2022-08-20 18:26:00 -0400
+background: '/img/posts/06.jpg'
+---
+
+<p>검색엔진 관련 서적<p>
+<p><a href="http://www.kyobobook.co.kr/product/detailViewKor.laf?mallGb=KOR&ejkGb=KOR&barcode=9791161755083">정보 검색의 이론과 실재</a></p>
+<p><a href="http://www.kyobobook.co.kr/product/detailViewKor.laf?ejkGb=KOR&mallGb=KOR&barcode=9791162240847&orderClick=LEa&Kc=">자바로 배우는 핵심 자료 구조와 알고리즘</a></p>
+<p><a href="http://www.kyobobook.co.kr/product/detailViewKor.laf?ejkGb=KOR&mallGb=KOR&barcode=9788972832805&orderClick=LAG&Kc=">한국어 형태소 분석과 정보 검색</a></p>
+<p><a href="http://www.kyobobook.co.kr/product/detailViewKor.laf?ejkGb=KOR&mallGb=KOR&barcode=9788993995855&orderClick=LAG&Kc=">최신 정보 검색론</a></p>
+
+<p>검색엔진</p>
+<p><a href="https://lucene.apache.org/">Lucene</a></p>
+<p><a href="https://www.lemurproject.org/indri.php">Lemur Project Indri</a></p>
+<p><a href="http://stefan.buettcher.org/cs/wumpus/">Wumpus</a></p>
+
+
+<p>역색인</p>
+<ul>
+    <li>역색인 구조를 문서에 존재하는 텀의 사전과 각 텀을 그 텀의 등장위치 정보 리스트라고 정의하자.</li>
+    <li>사전과 포스팅 목록에 대하여 역색인을 네가지 메서드를 갖는 추상자료구조 (ADT) 라고 정의 하자.</li>
+    <li>  - first (t)는 문서 모음에서 텀 t 가 처음으로 나타난 위치를 돌려준다.</li>
+    <li>  - last (t)는 문서 모음에서 텀 t 가 마지막으로 나타난 위치를 돌려준다.</li>
+    <li>  - next (t, current)는 current가 가리키는 위치 이후에 텀 t가 처음으로 나타난 위치를 돌려준다.</li>
+    <li>  - prev (t, current)는 current가 가리키는 위치 이전에 텀 t가 마지막으로 나타난 위치를 돌려준다.</li>
+    <li> 예제) 구문검색</li>
+    <li>    구문검색 알고리즘의 목표는 문서 모음 내에서 구문이 출현하는 모든 구간의 시작과 끝을 구하는 것이다.</li>
+    <li> nextPhrase (t1 t2...tn, position) ≡
+        1       v ← position
+        2       for i ← 1 to n do
+        3           v ← next(ti, v)
+        4       if v = ∞ then
+        5           return [∞, ∞]
+        6       u ← v
+        7       for i ← n − 1 down to 1 do
+        8           u ← prev(ti, u)
+        9       if v − u = n − 1 then
+        10          return [u, v]
+        11      else
+        12          return nextPhrase(t1 t2...tn, u )</li>
+    <li>    구문의 위치는 시작위치와 끝 위치를 뜻하는 구간 [u, v] 로 표시한다.
+             주어진 위치로부터 가장 먼저 구문이 나타나는 위치를 계산 하는 함수,
+             함수 안에서 역색인 추상적 자료 구조의 next와 prev를 부르며 문서 모음에서 찾은 결과 구간을 돌려준다.</li>
+    <li>    텀 n 개로 된 구문 "t1 t2 ...tn" 이 주어지면 구문 검색 알고리즘은 왼쪽부터 오른쪽으로 포스팅 목록을
+             훑어 가며 각 텀에 대해 next를 부르고, 그 다음 반대 순서로 돌아오면서 각 텀에 대해 prev를 부른다. 이렇게
+             한 번 왕복하면 모든 텀이 순서대로 나오는 가장 짧은 구간을 계산한다. </li>
+
+
+</ul>
+
+<p>Vert.X-tcp-eventbus-bridge 파이썬 클라이언트 샘플</p>
+<ul>
+    <li>Vertx Tcp Eventbus Bridge는 Python Client 소켓 모듈에서 Vert.x Tcp Bridge 호출을 통하여 안정적인 통신방식을 사용하고자 한다.</li>
+    <li><a href="https://github.com/vert-x3/vertx-eventbus-bridge-clients/tree/master/python">https://github.com/vert-x3/vertx-eventbus-bridge-clients/tree/master/python</a></li>
+</ul>
